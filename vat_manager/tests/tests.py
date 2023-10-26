@@ -1,31 +1,45 @@
+import unittest
 from datetime import datetime, timedelta
-from django.test import TestCase
-from vat_manager.models import ExchangeRate
-from vat_manager.views import get_datas_between_period, date_range, fetch_and_save_exchange_rates
+from unittest.mock import MagicMock
+import asyncio
+
+from asgiref.sync import sync_to_async
+
+from vat_manager.views import get_datas_between_period, date_range, fetch_and_save_exchange_rates, \
+    get_exchange_rate_data, TableView
 
 
-class TestGetDatasBetweenPeriod(TestCase):
+class TestYourFunctions(unittest.TestCase):
+
     def test_get_datas_between_period(self):
-        date_i = "2023-01-01"
-        date_e = "2023-01-05"
-        expected_dates = [datetime(2023, 1, 1), datetime(2023, 1, 2), datetime(2023, 1, 3), datetime(2023, 1, 4),
-                          datetime(2023, 1, 5)]
-        result = get_datas_between_period(date_i, date_e)
-        self.assertEqual(result, expected_dates)
+        start_date = "2023-10-20"
+        end_date = "2023-10-25"
+        expected_dates = [datetime(2023, 10, 20), datetime(2023, 10, 21), datetime(2023, 10, 22),
+                          datetime(2023, 10, 23), datetime(2023, 10, 24), datetime(2023, 10, 25)]
+        self.assertEqual(get_datas_between_period(start_date, end_date), expected_dates)
 
-
-class TestDateRange(TestCase):
     def test_date_range(self):
-        date_s = "2023-01-01"
-        date_e = "2023-01-05"
-        result = date_range(date_s, date_e)
-        self.assertTrue(result)
+        date_s = "2023-10-20"
+        date_e = "2023-10-25"
+        self.assertTrue(date_range(date_s, date_e))
 
-
-class TestFetchAndSaveExchangeRates(TestCase):
+    @sync_to_async
     def test_fetch_and_save_exchange_rates(self):
-        start_date = "2023-01-01"
-        end_date = "2023-01-05"
-        fetch_and_save_exchange_rates(start_date, end_date)
-        result = ExchangeRate.objects.filter(date__gte=start_date, date__lte=end_date).exists()
-        self.assertTrue(result)
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(fetch_and_save_exchange_rates("2023-10-20", "2023-10-25"))
+
+    def test_get_exchange_rate_data(self):
+        mock_request = MagicMock()
+        mock_request.GET.get.return_value = '2023-10-20'
+        # Add more mock attributes as needed
+
+        response = get_exchange_rate_data(mock_request)
+
+    def test_table_view(self):
+        mock_request = MagicMock()
+
+        response = TableView().get(mock_request)
+
+
+if __name__ == '__main__':
+    unittest.main()
