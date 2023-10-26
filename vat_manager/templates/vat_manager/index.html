@@ -5,7 +5,7 @@
     <script src="https://code.highcharts.com/highcharts.js"></script>
 </head>
 <body>
-    <div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+    <div id="container" style="min-width: 360px; height: 500px; margin: 25px auto auto auto"></div>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             var myChart = Highcharts.chart('container', {
@@ -13,7 +13,9 @@
                     text: 'Cotações de Moedas em relação ao Dólar'
                 },
                 xAxis: {
+                    type: 'datetime',
                     categories: {{ dates|safe }}
+
                 },
                 yAxis: {
                     title: {
