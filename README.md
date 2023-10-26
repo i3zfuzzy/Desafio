@@ -25,7 +25,7 @@ Certifique-se de ter o seguinte instalado:
 5. Inicie o servidor local.
 
 ```bash
-git clone https://github.com/SEU_USUARIO_DO_GITHUB/nome-do-repositorio.git
+git clone https://github.com/i3zfuzzy/Desafio.git
 cd nome-do-repositorio
 pip install -r requirements.txt
 python manage.py migrate
