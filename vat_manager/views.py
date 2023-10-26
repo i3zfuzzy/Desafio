@@ -1,12 +1,13 @@
 from collections import defaultdict
-
-import requests
 from datetime import datetime, timedelta
-from django.shortcuts import render
-from django.db.models import Q, F, Max
-from .models import ExchangeRate
+import aiohttp
+from django.db.models import Q, Max
 from django.http import JsonResponse, HttpResponse
+from django.shortcuts import render
+from django.utils import asyncio
 from django.views import View
+
+from .models import ExchangeRate
 
 
 # Verifica o range entre datas, e complementa data inicio até data fim para request
@@ -39,22 +40,36 @@ def date_range(date_s, date_e):
 
 
 # Valida o range de data da request, salva o objeto no banco
-def fetch_and_save_exchange_rates(start_date, end_date):
+async def fetch_exchange_rate(session, date, base_url, currency):
+    async with session.get(f"{base_url}?date={date}&base=USD") as response:
+        data = await response.json()
+        return data["rates"][currency]
+
+
+async def fetch_and_save_exchange_rates(start_date, end_date):
     base_url = "https://api.vatcomply.com/rates"
     currencies = ["EUR", "JPY", "BRL"]
     dates_between_period = get_datas_between_period(start_date, end_date)
-    for date in dates_between_period:
-        if not ExchangeRate.objects.filter(date=date).exists():
-            for currency in currencies:
-                response = requests.get(f"{base_url}?date={start_date}&base=USD")
-                data = response.json()
-                ExchangeRate.objects.create(
-                    date=start_date,
-                    base_currency="USD",
-                    target_currency=currency,
-                    rate=data["rates"][currency]
-                )
-        break
+
+    async with aiohttp.ClientSession() as session:
+        tasks = []
+        for date in dates_between_period:
+            if not ExchangeRate.objects.filter(date=date).exists():
+                for currency in currencies:
+                    task = asyncio.create_task(fetch_exchange_rate(session, date, base_url, currency))
+                    tasks.append(task)
+
+        results = await asyncio.gather(*tasks)
+
+        for i, date in enumerate(dates_between_period):
+            if not ExchangeRate.objects.filter(date=date).exists():
+                for j, currency in enumerate(currencies):
+                    ExchangeRate.objects.create(
+                        date=date,
+                        base_currency="USD",
+                        target_currency=currency,
+                        rate=results[i * len(currencies) + j]
+                    )
 
 
 # Recebe a request do usuário e monta a base de dados do gráfico
