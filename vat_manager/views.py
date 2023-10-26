@@ -1,11 +1,10 @@
-import json
-
 import requests
-import numpy as np
 from datetime import datetime, timedelta
 from django.shortcuts import render
 from django.db.models import Q
 from .models import ExchangeRate
+from django.http import JsonResponse
+from django.views import View
 
 
 # Verifica o range entre datas
@@ -79,3 +78,10 @@ def get_exchange_rate_data(request):
 
     return render(request, 'vat_manager/index.html',
                   {'dates': dates, 'usd_to_eur': usd_to_eur, 'usd_to_brl': usd_to_brl, 'usd_to_jpy': usd_to_jpy})
+
+
+# Retona todas as cotaçoes persistidas no banco
+class TableView(View):
+    def get(self, request):
+        data = list(ExchangeRate.objects.values())
+        return JsonResponse(data, safe=False)
