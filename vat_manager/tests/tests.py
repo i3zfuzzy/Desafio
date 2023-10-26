@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from django.test import TestCase
-from .models import ExchangeRate
-from .views import get_datas_between_period, date_range, fetch_and_save_exchange_rates
+from vat_manager.models import ExchangeRate
+from vat_manager.views import get_datas_between_period, date_range, fetch_and_save_exchange_rates
 
 
 class TestGetDatasBetweenPeriod(TestCase):
