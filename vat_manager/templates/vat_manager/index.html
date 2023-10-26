@@ -1,14 +1,37 @@
+<!DOCTYPE html>
 <html>
 <head>
-    <title>Gráfico de Cotações</title>
-        <script src="https://code.highcharts.com/highcharts.js"></script>
+    <title>Gráfico Highcharts em Django</title>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
 </head>
 <body>
-    <!-- TODO Highcharts graphic -->
-    <div id="container" style="width: 600px; height: 400px;"></div>
-    <h1>Hello!</h1>
+    <div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
     <script>
-
+        document.addEventListener('DOMContentLoaded', function () {
+            var myChart = Highcharts.chart('container', {
+                title: {
+                    text: 'Cotações de Moedas em relação ao Dólar'
+                },
+                xAxis: {
+                    categories: {{ dates|safe }}
+                },
+                yAxis: {
+                    title: {
+                        text: 'Taxa de Câmbio'
+                    }
+                },
+                series: [{
+                    name: 'USD para EUR',
+                    data: {{ usd_to_eur|safe }}
+                }, {
+                    name: 'USD para BRL',
+                    data: {{ usd_to_brl|safe }}
+                }, {
+                    name: 'USD para JPY',
+                    data: {{ usd_to_jpy|safe }}
+                }]
+            });
+        });
     </script>
 </body>
 </html>

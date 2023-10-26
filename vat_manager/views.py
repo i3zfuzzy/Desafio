@@ -1,3 +1,5 @@
+import json
+
 import requests
 import numpy as np
 from datetime import datetime, timedelta
@@ -42,6 +44,7 @@ def date_range(date_s, date_e):
     return business_day <= 5
 
 
+# Valida o range de data da request, salva o objeto no banco
 def fetch_and_save_exchange_rates(start_date, end_date):
     base_url = "https://api.vatcomply.com/rates"
     currencies = ["EUR", "JPY", "BRL"]
@@ -60,6 +63,7 @@ def fetch_and_save_exchange_rates(start_date, end_date):
             break
 
 
+# Recebe a request do usuário e monta a base de dados do gráfico
 def get_exchange_rate_data(request):
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
@@ -68,5 +72,10 @@ def get_exchange_rate_data(request):
         for date in dates_between_period:
             fetch_and_save_exchange_rates(date.strftime("%Y-%m-%d"), end_date)
     data = ExchangeRate.objects.filter(Q(date__gte=start_date), Q(date__lte=end_date))
-    print(data)
-    return render(request, 'vat_manager/index.html', {'data': data})
+    dates = [str(datum.date) for datum in data]
+    usd_to_eur = [datum.rate for datum in data if datum.target_currency == 'EUR']
+    usd_to_brl = [datum.rate for datum in data if datum.target_currency == 'BRL']
+    usd_to_jpy = [datum.rate for datum in data if datum.target_currency == 'JPY']
+
+    return render(request, 'vat_manager/index.html',
+                  {'dates': dates, 'usd_to_eur': usd_to_eur, 'usd_to_brl': usd_to_brl, 'usd_to_jpy': usd_to_jpy})
